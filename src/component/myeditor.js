@@ -75,7 +75,7 @@ export function Myeditor() {
         // setTimeout(() => {
             
         // }, 1000);
-        if (count % 5 == 0) {
+        if (count % 60 == 0) {
             if(tempgivestring[0].string !== changeString){
                 tempGive = [
                     {

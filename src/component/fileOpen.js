@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import { useRef} from 'react';
 const FileOpen = (props) => {
     const inputRef = useRef(null);
     let setFileContent = props.setFileContent;

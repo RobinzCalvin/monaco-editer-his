@@ -1,6 +1,6 @@
 // import logo from './logo.svg';
 import './App.css';
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 // import ReactDOM from "react-dom";
 import { Myeditor } from './component/myeditor';
 
