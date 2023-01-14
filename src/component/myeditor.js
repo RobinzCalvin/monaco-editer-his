@@ -9,12 +9,16 @@ export function Myeditor() {
     const [displayList, setDisplayList] = useState([]);
     const [fileContent, setFileContent] = useState('');
     const [changeString, setChangeString] = useState('');
-    const [offSetNum, setOffSetNum] = useState(0);
+    const [offSetNum, setOffSetNum] = useState(1);
     const [changeCounts, setChangeCounts] = useState(0);
     const [startLines, setStartLines] = useState(1);
     const [startColumns, setStartColumns] = useState(1);
     const [endLines, setEndLines] = useState(1);
+    const [decIns, setDecIns] = useState([]);
     const [endColumns, setEndColumns] = useState(1);
+    const [startEventFlag, setStartEventFlag] = useState(0);
+    const [detectFlag, setDetectFlag] = useState(false);
+    const [point, setPoint] = useState([])
     const [giveListLog, setGiveListLog] = useState([
         {
         'string': '',
@@ -29,14 +33,22 @@ export function Myeditor() {
         'offSetNum': 0,
         }
     ]);
+    
     const [vars, setVars] = useState({});
     const { monacoEditor, monaco } = vars;
     let config = Config;
     const [count, setCount ] = useState(1);
     const timerRef = useRef();
+    
     async function editorDidMount(monacoEditor, monaco) {
         setVars({ monacoEditor, monaco });
     }
+
+    useEffect(() => {
+        if (fileContent) {
+            setStartEventFlag(1);    
+        }
+    }, [])
 
     useEffect(() => {
         const displayList = giveListLog.map(item => Object.assign(item, {show: false}))
@@ -63,11 +75,11 @@ export function Myeditor() {
                         'offSetNum': offSetNum,
                     },
                 ];
-                console.log('tempGive', tempGive);
+                // console.log('tempGive', tempGive);
                 setTempgivestring(tempGive);
                 setGiveListLog([...giveListLog, ...tempGive]);
                 const obj = [...giveListLog, ...tempGive];
-                const blob = new Blob([JSON.stringify(obj, null, 2)], {type : 'application/json'});
+                const blob = new Blob([JSON.stringify(obj, null, 1)], {type : 'application/json'});
                 saveFile(blob, fileUrl);
             }  
         }
@@ -78,7 +90,7 @@ export function Myeditor() {
           return;
         }
         const qwe = monacoEditor.deltaDecorations(
-          [], [{ range: new monaco.Range(startLines, startColumns, endLines, endColumns), options: { inlineClassName: "base.case.rofl" }}]  
+          [], decIns
         );
         return () => monacoEditor.deltaDecorations(qwe, []);
     }, [changeString]);   
@@ -95,17 +107,70 @@ export function Myeditor() {
         let a=changeCounts;
         setChangeCounts(a++);
         let temp1 = '';
-        temp1 = changeString +  event.changes[0].text;
+        temp1 = changeString + event.changes[0].text;
         setChangeString(temp1);
-        setOffSetNum(parseInt(event.changes[0].rangeOffset));
-        setEndLines(event.changes[0].range.startLineNumber);
-        setEndColumns(event.changes[0].range.startColumn);
-        if (count % 5 === 0 && tempgivestring[0].string !== changeString) {
-            setStartLines(event.changes[0].range.startLineNumber);
-            setStartColumns(event.changes[0].range.startColumn);
-        }    
-    }
+        
+        if (!startEventFlag) {
+            setStartEventFlag(true)
+        }
+        else{
+            if (!detectFlag) {
+                setStartLines(event.changes[0].range.startLineNumber);
+                setStartColumns(event.changes[0].range.startColumn);
+                setOffSetNum(event.changes[0].rangeOffset)
+                setEndLines(event.changes[0].range.startLineNumber);
+                setEndColumns(event.changes[0].range.startColumn);
+                setDetectFlag(true)
+            } else {
+                if (Math.abs(event.changes[0].rangeOffset - offSetNum) > 1) {
+                    if (event.changes[0].rangeOffset > offSetNum) {
+                        let as = decIns.map(item => Object.assign(item));
+                        let insertrange = {
+                            range: new monaco.Range(startLines, startColumns, endLines, endColumns),
+                            options: { inlineClassName: "base.case.rofl" }
+                        }
+                        as.push(insertrange);
+                        setDecIns(as);
+                        setOffSetNum(event.changes[0].rangeOffset);
+                        setDetectFlag(false);
+                    }
+                    else{
+                        let as = decIns.map(item => Object.assign(item));
+                        let insertrange = {
+                            range: new monaco.Range(startLines, startColumns, endLines, endColumns),
+                            options: { inlineClassName: "base.case.rofl" }
+                        }
+                        as.push(insertrange);
+                        setDecIns(as);
+                        setOffSetNum(event.changes[0].rangeOffset);
+                        setStartLines(event.changes[0].range.startLineNumber);
+                        setStartColumns(event.changes[0].range.startColumn);
+                        // let as = decIns.map(item => Object.assign(item));
+                        // let insertrange = {
+                        //     range: new monaco.Range(startLines, startColumns, endLines, endColumns),
+                        //     options: { inlineClassName: "base.case.rofl" }
+                        // }
+                        // as.push(insertrange);
+                        // setDecIns(as);
+                        // setOffSetNum(event.changes[0].rangeOffset);
+                        setDetectFlag(false);
+                    }
+                    
+                } else {
 
+                    setEndLines(event.changes[0].range.startLineNumber);
+                    setEndColumns(event.changes[0].range.startColumn + 1);
+                    setOffSetNum(event.changes[0].rangeOffset);
+                    const newDecIns = decIns.map((obj, index)=>{
+                        return obj;
+                    })
+                    // setDecIns(newDecIns);
+                }
+            }
+            
+        }
+        // console.log(decIns);  
+    }
     const saveFile = async (blob, fileUrl) => {
         const a = document.createElement('a');
         a.download = fileUrl.name;
@@ -119,7 +184,7 @@ export function Myeditor() {
         <div className="w-full flex justify-center flex-col mt-5  rounded border-b-1 border-[#451356] ">
             <div className="w-full text-4xl font-bold text-[#451356] h-12 text-center">{config.title}</div>
             <div className="w-full">
-                <FileOpen setTempgivestring={setTempgivestring} setFileContent={setFileContent} setFileUrl={setFileUrl}/>
+                <FileOpen setTempgivestring={setTempgivestring} setStartEventFlag={setStartEventFlag} setFileContent={setFileContent} setFileUrl={setFileUrl}/>
             </div>
             <div className="w-full flex flex-row border ">
                 <div className="w-2/3 border-spacing-1 border-[#000000] ">                    
@@ -150,6 +215,7 @@ export function Myeditor() {
     )
 }
 function EditorWrapper({ theme, path,defaultLanguage,value, language, editorDidMount, handleEditorChange }) {
+
     return (
         <Editor
             height="80vh"

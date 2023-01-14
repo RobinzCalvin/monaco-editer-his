@@ -1,10 +1,14 @@
-import { useRef} from 'react';
+import { useEffect, useRef} from 'react';
 const FileOpen = (props) => {
     const inputRef = useRef(null);
+    let setStartEventFlag = props.setStartEventFlag;
     let setFileContent = props.setFileContent;
     let setFileUrl = props.setFileUrl;
     let setTempgivestring = props.setTempgivestring;
     let fileReader;
+    useEffect(()=>{
+        setStartEventFlag(false);
+    }, [])
     const handleClick = () => {
         inputRef.current.click();
     };

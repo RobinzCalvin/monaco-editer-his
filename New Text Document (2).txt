@@ -1,0 +1,33 @@
+const csv = require("fast-csv");
+  const { format } = require('@fast-csv/format');
+  const fileName = 'result.csv';
+  const fs = require("fs");
+  const csvFile = fs.createWriteStream(fileName);
+  let arr=[ strategies[0].strategy_id,
+            strategies[0].start_date_time,
+            strategies[0].end_date_time,
+            1000,
+            (whataction == "Selling") ? currentMoney / lastaction * firstaction - currentMoney : currentMoney / firstaction * lastaction - currentMoney,
+            l_t_b_t,
+            s_b_q,
+            min,
+            max,
+            avg / sell,
+            buy,
+            sell,
+            (buy + sell) / ndays,
+            (buy + sell) * 7 / ndays,
+            l_b_d,
+            l_s_d,
+            l_o_r,
+            currentMoney - 1000
+          ];
+  const stream = format({ headers:true });
+  stream.pipe(csvFile);
+  stream.write(header);
+  stream.write(arr);
+  stream.end();         
+
+
+npm i -S fast-csv
+npm i -S @fast-csv/format
